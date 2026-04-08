@@ -33,6 +33,9 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
   final SupabaseClient _client;
   final _uuid = const Uuid();
 
+  // Signed URL validity: 7 days (seconds)
+  static const _signedUrlExpiry = 60 * 60 * 24 * 7;
+
   @override
   Future<PhotoModel> uploadPhoto({
     required File file,
@@ -40,16 +43,26 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
     required String userId,
     String? caption,
   }) async {
-    final ext = file.path.split('.').last;
-    final path = '$coupleId/$userId/${_uuid.v4()}.$ext';
+    assert(
+      _client.auth.currentUser?.id == userId,
+      'uploadPhoto: userId must match the authenticated user',
+    );
+
+    final ext = file.path.split('.').last.toLowerCase();
+    if (!AppConstants.allowedPhotoExtensions.contains(ext)) {
+      throw Exception(
+          'Unsupported file type. Please use JPG, PNG, WEBP, or HEIC.');
+    }
+    final fileSize = await file.length();
+    if (fileSize > AppConstants.maxPhotoSizeBytes) {
+      throw Exception('Photo exceeds the 10 MB size limit.');
+    }
+
+    final storagePath = '$coupleId/$userId/${_uuid.v4()}.$ext';
 
     await _client.storage
         .from(AppConstants.photosBucket)
-        .upload(path, file, fileOptions: const FileOptions(upsert: false));
-
-    final imageUrl = _client.storage
-        .from(AppConstants.photosBucket)
-        .getPublicUrl(path);
+        .upload(storagePath, file, fileOptions: const FileOptions(upsert: false));
 
     final today = AppDateUtils.todayIso();
     final result = await _client
@@ -57,14 +70,18 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
         .insert({
           'couple_id': coupleId,
           'user_id': userId,
-          'image_url': imageUrl,
+          'image_url': storagePath, // store path; signed URLs generated on fetch
           'caption': caption,
           'date': today,
         })
         .select()
         .single();
 
-    return PhotoModel.fromJson(result );
+    final signedUrl = await _client.storage
+        .from(AppConstants.photosBucket)
+        .createSignedUrl(storagePath, _signedUrlExpiry);
+
+    return PhotoModel.fromJson({...result, 'image_url': signedUrl});
   }
 
   @override
@@ -77,9 +94,7 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
         .select()
         .eq('couple_id', coupleId)
         .eq('date', date);
-    return (rows as List)
-        .map((r) => PhotoModel.fromJson(r ))
-        .toList();
+    return _withSignedUrls(rows);
   }
 
   @override
@@ -89,9 +104,7 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
         .select()
         .eq('couple_id', coupleId)
         .order('date', ascending: false);
-    return (rows as List)
-        .map((r) => PhotoModel.fromJson(r ))
-        .toList();
+    return _withSignedUrls(rows);
   }
 
   @override
@@ -108,5 +121,21 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
         .eq('date', date)
         .limit(1);
     return (rows as List).isNotEmpty;
+  }
+
+  Future<List<PhotoModel>> _withSignedUrls(List<dynamic> rows) async {
+    if (rows.isEmpty) return [];
+    final data = rows.cast<Map<String, dynamic>>();
+    final paths = data.map((r) => r['image_url'] as String).toList();
+
+    final signedUrls = await _client.storage
+        .from(AppConstants.photosBucket)
+        .createSignedUrls(paths, _signedUrlExpiry);
+
+    return data.asMap().entries.map((entry) {
+      final row = Map<String, dynamic>.from(entry.value);
+      row['image_url'] = signedUrls[entry.key].signedUrl;
+      return PhotoModel.fromJson(row);
+    }).toList();
   }
 }

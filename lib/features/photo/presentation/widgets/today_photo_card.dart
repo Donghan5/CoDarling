@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../../features/reaction/presentation/widgets/reaction_bar.dart';
 import '../../domain/entities/photo_entity.dart';
 
 class TodayPhotoCard extends StatelessWidget {
@@ -7,10 +8,13 @@ class TodayPhotoCard extends StatelessWidget {
     super.key,
     required this.photo,
     required this.label,
+    this.showReactions = false,
   });
 
   final PhotoEntity photo;
   final String label;
+  /// Whether to show the reaction bar below the photo.
+  final bool showReactions;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,7 @@ class TodayPhotoCard extends StatelessWidget {
           ),
           if (photo.caption != null || label.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 4),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -47,6 +51,8 @@ class TodayPhotoCard extends StatelessWidget {
                 ],
               ),
             ),
+          if (showReactions)
+            ReactionBar(targetType: 'photo', targetId: photo.id),
         ],
       ),
     );

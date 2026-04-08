@@ -1,12 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Stream<UserModel?> get authStateChanges;
-  Future<UserModel> signInWithGoogle();
+  Future<void> signInWithGoogle();
   Future<void> signOut();
   Future<UserModel?> getCurrentUser();
+
+  /// Debug only — email/password sign-in for test accounts.
+  Future<void> signInWithEmailPassword(String email, String password);
 }
 
 class SupabaseAuthDataSource implements AuthRemoteDataSource {
@@ -17,18 +21,33 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
   @override
   Stream<UserModel?> get authStateChanges => _client.auth.onAuthStateChange
       .map((event) => event.session?.user)
-      .asyncMap(_fetchOrCreateUserModel);
+      .asyncMap((user) async {
+        try {
+          return await _fetchOrCreateUserModel(user);
+        } catch (e, st) {
+          debugPrint('=== authStateChanges error: $e\n$st');
+          return null;
+        }
+      });
 
   @override
-  Future<UserModel> signInWithGoogle() async {
-    await _client.auth.signInWithOAuth(OAuthProvider.google);
-    final user = _client.auth.currentUser;
-    if (user == null) throw Exception('Google sign-in failed');
-    return _fetchOrCreateUserModel(user).then((u) => u!);
+  Future<void> signInWithGoogle() async {
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: AppConstants.oauthRedirectUri,
+      authScreenLaunchMode: LaunchMode.externalApplication,
+    );
+    // Browser launched; auth completion arrives via onAuthStateChange stream.
   }
 
   @override
   Future<void> signOut() => _client.auth.signOut();
+
+  @override
+  Future<void> signInWithEmailPassword(String email, String password) async {
+    await _client.auth.signInWithPassword(email: email, password: password);
+    // Session established; authStateChanges stream fires automatically.
+  }
 
   @override
   Future<UserModel?> getCurrentUser() async {
@@ -52,8 +71,11 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
 
     // First sign-in — insert user row
     final email = user.email ?? '';
-    final displayName =
+    final rawName =
         user.userMetadata?['full_name'] as String? ?? email.split('@').first;
+    final displayName = rawName
+        .trim()
+        .substring(0, rawName.trim().length.clamp(0, AppConstants.maxDisplayNameLength));
     final avatarUrl = user.userMetadata?['avatar_url'] as String?;
 
     final inserted = await _client

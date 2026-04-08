@@ -1,6 +1,5 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
-import '../entities/user_entity.dart';
 import '../repositories/auth_repository.dart';
 
 class SignInWithGoogle {
@@ -8,5 +7,5 @@ class SignInWithGoogle {
 
   final AuthRepository _repository;
 
-  Future<Either<Failure, UserEntity>> call() => _repository.signInWithGoogle();
+  Future<Either<Failure, void>> call() => _repository.signInWithGoogle();
 }

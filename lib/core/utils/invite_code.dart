@@ -7,7 +7,7 @@ class InviteCodeGenerator {
   static const _chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 
   static String generate() {
-    final suffix = List.generate(4, (_) => _chars[_random.nextInt(_chars.length)]).join();
+    final suffix = List.generate(6, (_) => _chars[_random.nextInt(_chars.length)]).join();
     return 'LOVE-$suffix';
   }
 }

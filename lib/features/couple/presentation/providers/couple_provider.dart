@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/metrics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/couple_remote_datasource.dart';
 import '../../data/repositories/couple_repository_impl.dart';
@@ -12,7 +13,10 @@ final coupleDataSourceProvider = Provider<CoupleRemoteDataSource>(
 );
 
 final coupleRepositoryProvider = Provider(
-  (ref) => CoupleRepositoryImpl(ref.watch(coupleDataSourceProvider)),
+  (ref) => CoupleRepositoryImpl(
+    ref.watch(coupleDataSourceProvider),
+    ref.watch(metricsServiceProvider),
+  ),
 );
 
 final createCoupleProvider = Provider(

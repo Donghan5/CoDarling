@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/services/metrics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../couple/presentation/providers/couple_provider.dart';
 import '../../data/datasources/photo_remote_datasource.dart';
@@ -14,7 +15,10 @@ final photoDataSourceProvider = Provider<PhotoRemoteDataSource>(
 );
 
 final photoRepositoryProvider = Provider(
-  (ref) => PhotoRepositoryImpl(ref.watch(photoDataSourceProvider)),
+  (ref) => PhotoRepositoryImpl(
+    ref.watch(photoDataSourceProvider),
+    ref.watch(metricsServiceProvider),
+  ),
 );
 
 final uploadPhotoProvider = Provider(

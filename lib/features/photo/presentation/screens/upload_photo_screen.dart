@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import '../../../../core/constants/app_constants.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../couple/presentation/providers/couple_provider.dart';
 import '../providers/photo_provider.dart';
@@ -106,6 +107,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
+              maxLength: AppConstants.maxCaptionLength,
             ),
             const SizedBox(height: 24),
             _uploading
