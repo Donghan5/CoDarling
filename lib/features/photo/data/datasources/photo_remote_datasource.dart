@@ -43,10 +43,9 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
     required String userId,
     String? caption,
   }) async {
-    assert(
-      _client.auth.currentUser?.id == userId,
-      'uploadPhoto: userId must match the authenticated user',
-    );
+    if (_client.auth.currentUser?.id != userId) {
+      throw Exception('uploadPhoto: userId must match the authenticated user');
+    }
 
     final ext = file.path.split('.').last.toLowerCase();
     if (!AppConstants.allowedPhotoExtensions.contains(ext)) {

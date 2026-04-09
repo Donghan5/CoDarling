@@ -15,7 +15,7 @@ class AlbumScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Our Album')),
       body: albumAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
         data: (photos) => photos.isEmpty
             ? const Center(child: Text('No photos yet. Start sharing!'))
             : GridView.builder(

@@ -24,6 +24,10 @@ class HomeScreen extends ConsumerWidget {
         title: const Text('Today'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.calendar_month),
+            onPressed: () => context.push('/calendar'),
+          ),
+          IconButton(
             icon: const Icon(Icons.photo_library),
             onPressed: () => context.push('/album'),
           ),
@@ -38,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: coupleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(child: Text('Error: $e')),
+        error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
         data: (couple) {
           if (couple == null) {
             return Center(
@@ -121,10 +125,10 @@ class HomeScreen extends ConsumerWidget {
 
           return hasPostedAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Center(child: Text('Error: $e')),
+            error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
             data: (hasPosted) => todayPhotosAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
+              error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
               data: (photos) {
                 final partnerPhoto = photos.where(
                     (p) => p.userId != user?.id).firstOrNull;

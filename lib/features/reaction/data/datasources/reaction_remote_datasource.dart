@@ -57,10 +57,9 @@ class SupabaseReactionDataSource implements ReactionRemoteDataSource {
     required String targetId,
     required String emoji,
   }) async {
-    assert(
-      _client.auth.currentUser?.id == userId,
-      'addReaction: userId must match the authenticated user',
-    );
+    if (_client.auth.currentUser?.id != userId) {
+      throw Exception('addReaction: userId must match the authenticated user');
+    }
     final result = await _client
         .from(AppConstants.reactionsTable)
         .insert({
@@ -81,10 +80,9 @@ class SupabaseReactionDataSource implements ReactionRemoteDataSource {
     required String targetId,
     required String emoji,
   }) async {
-    assert(
-      _client.auth.currentUser?.id == userId,
-      'removeReaction: userId must match the authenticated user',
-    );
+    if (_client.auth.currentUser?.id != userId) {
+      throw Exception('removeReaction: userId must match the authenticated user');
+    }
     await _client
         .from(AppConstants.reactionsTable)
         .delete()

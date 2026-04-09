@@ -16,10 +16,9 @@ class SupabaseCoupleDataSource implements CoupleRemoteDataSource {
 
   @override
   Future<CoupleModel> createCouple(String userId) async {
-    assert(
-      _client.auth.currentUser?.id == userId,
-      'createCouple: userId must match the authenticated user',
-    );
+    if (_client.auth.currentUser?.id != userId) {
+      throw Exception('createCouple: userId must match the authenticated user');
+    }
     final code = InviteCodeGenerator.generate();
     final expiresAt = DateTime.now().toUtc().add(AppConstants.inviteCodeExpiry);
     final result = await _client
@@ -37,10 +36,9 @@ class SupabaseCoupleDataSource implements CoupleRemoteDataSource {
 
   @override
   Future<CoupleModel> joinCouple(String inviteCode, String userId) async {
-    assert(
-      _client.auth.currentUser?.id == userId,
-      'joinCouple: userId must match the authenticated user',
-    );
+    if (_client.auth.currentUser?.id != userId) {
+      throw Exception('joinCouple: userId must match the authenticated user');
+    }
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _client
         .from(AppConstants.couplesTable)
