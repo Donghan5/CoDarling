@@ -68,7 +68,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Post today\'s photo')),
+      appBar: AppBar(title: const Text('오늘의 사진 올리기')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -93,7 +93,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
                           children: [
                             Icon(Icons.add_a_photo, size: 48, color: Colors.grey),
                             SizedBox(height: 8),
-                            Text('Tap to select a photo'),
+                            Text('사진을 선택하세요'),
                           ],
                         ),
                       ),
@@ -103,7 +103,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
             TextField(
               controller: _captionController,
               decoration: const InputDecoration(
-                hintText: 'Add a caption (optional)',
+                hintText: '한 줄 메모 (선택사항)',
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
@@ -114,7 +114,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
                 ? const CircularProgressIndicator()
                 : FilledButton(
                     onPressed: _selectedFile != null ? _upload : null,
-                    child: const Text('Share photo'),
+                    child: const Text('사진 공유하기'),
                   ),
           ],
         ),
@@ -131,7 +131,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text('Camera'),
+              title: const Text('카메라'),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera);
@@ -139,7 +139,7 @@ class _UploadPhotoScreenState extends ConsumerState<UploadPhotoScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text('Gallery'),
+              title: const Text('갤러리'),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery);

@@ -12,12 +12,12 @@ class AlbumScreen extends ConsumerWidget {
     final albumAsync = ref.watch(albumPhotosProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Our Album')),
+      appBar: AppBar(title: const Text('우리의 앨범')),
       body: albumAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
+        error: (e, _) => const Center(child: Text('오류가 발생했어요. 다시 시도해주세요.')),
         data: (photos) => photos.isEmpty
-            ? const Center(child: Text('No photos yet. Start sharing!'))
+            ? const Center(child: Text('아직 사진이 없어요. 첫 사진을 올려보세요!'))
             : GridView.builder(
                 padding: const EdgeInsets.all(4),
                 gridDelegate:

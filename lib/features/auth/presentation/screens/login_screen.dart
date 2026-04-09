@@ -75,7 +75,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Stay close, one photo at a time.',
+                '매일 한 장, 서로의 일상을 나눠요.',
                 style: Theme.of(context).textTheme.bodyLarge,
                 textAlign: TextAlign.center,
               ),
@@ -85,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   : FilledButton.icon(
                       onPressed: _signIn,
                       icon: const Icon(Icons.login),
-                      label: const Text('Continue with Google'),
+                      label: const Text('Google로 계속하기'),
                     ),
               if (kDebugMode) ...[
                 const SizedBox(height: 48),

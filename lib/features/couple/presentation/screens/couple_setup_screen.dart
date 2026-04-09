@@ -37,7 +37,7 @@ class _CoupleSetupScreenState extends ConsumerState<CoupleSetupScreen> {
         showDialog(
           context: context,
           builder: (_) => AlertDialog(
-            title: const Text('Your invite code'),
+            title: const Text('초대 코드'),
             content: SelectableText(
               couple.inviteCode,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
@@ -49,7 +49,7 @@ class _CoupleSetupScreenState extends ConsumerState<CoupleSetupScreen> {
                   Navigator.pop(context);
                   context.go('/home');
                 },
-                child: const Text('Copy & continue'),
+                child: const Text('복사하고 계속'),
               ),
             ],
           ),
@@ -77,14 +77,14 @@ class _CoupleSetupScreenState extends ConsumerState<CoupleSetupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Set up your couple')),
+      appBar: AppBar(title: const Text('커플 연결')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const Text(
-              'Create a new couple space and share your invite code with your partner.',
+              '새 커플 공간을 만들고 초대 코드를 파트너에게 공유하세요.',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -92,13 +92,13 @@ class _CoupleSetupScreenState extends ConsumerState<CoupleSetupScreen> {
                 ? const Center(child: CircularProgressIndicator())
                 : FilledButton(
                     onPressed: _createCouple,
-                    child: const Text('Create couple space'),
+                    child: const Text('커플 공간 만들기'),
                   ),
             const SizedBox(height: 32),
             const Divider(),
             const SizedBox(height: 16),
             const Text(
-              'Or enter your partner\'s invite code:',
+              '또는 파트너의 초대 코드를 입력하세요:',
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
@@ -113,7 +113,7 @@ class _CoupleSetupScreenState extends ConsumerState<CoupleSetupScreen> {
             const SizedBox(height: 12),
             FilledButton.tonal(
               onPressed: _loading ? null : _joinCouple,
-              child: const Text('Join with code'),
+              child: const Text('코드로 참여하기'),
             ),
           ],
         ),

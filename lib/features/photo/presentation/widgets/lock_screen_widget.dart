@@ -12,13 +12,13 @@ class LockScreenWidget extends StatelessWidget {
           const Icon(Icons.lock, size: 72, color: Colors.grey),
           const SizedBox(height: 16),
           Text(
-            'Post your photo first to see your partner\'s!',
+            '내 사진을 먼저 올리면 파트너 사진이 열려요!',
             style: Theme.of(context).textTheme.titleMedium,
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
-            'The lock opens once you share your moment for today.',
+            '오늘의 순간을 공유하면 자물쇠가 열려요.',
             style: Theme.of(context).textTheme.bodySmall,
             textAlign: TextAlign.center,
           ),

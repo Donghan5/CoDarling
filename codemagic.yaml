@@ -1,0 +1,60 @@
+workflows:
+  ios-release:
+    name: iOS Release → TestFlight
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+
+    environment:
+      flutter: 3.29.3
+      xcode: latest
+      cocoapods: default
+      groups:
+        - app_store_connect   # APP_STORE_CONNECT_KEY_IDENTIFIER, ISSUER_ID, PRIVATE_KEY
+        - firebase_ios        # GOOGLE_SERVICE_INFO_PLIST (base64)
+        - dart_define         # SUPABASE_URL, SUPABASE_ANON_KEY, DEV_TEST_PASSWORD
+      vars:
+        BUNDLE_ID: com.codarling.codarling
+        XCODE_WORKSPACE: ios/Runner.xcworkspace
+        XCODE_SCHEME: Runner
+
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+
+    scripts:
+      - name: Set up GoogleService-Info.plist
+        script: |
+          echo $GOOGLE_SERVICE_INFO_PLIST | base64 --decode > $CM_BUILD_DIR/ios/Runner/GoogleService-Info.plist
+
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Set up code signing
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files \
+            "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
+
+      - name: Flutter build iOS
+        script: |
+          flutter build ipa \
+            --release \
+            --export-options-plist=/Users/builder/export_options.plist \
+            --dart-define=SUPABASE_URL=$SUPABASE_URL \
+            --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
+            --dart-define=DEV_TEST_PASSWORD=$DEV_TEST_PASSWORD
+
+    artifacts:
+      - build/ios/ipa/*.ipa
+
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

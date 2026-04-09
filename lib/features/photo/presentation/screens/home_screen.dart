@@ -22,7 +22,7 @@ class HomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Today'),
+        title: const Text('오늘'),
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),
@@ -43,13 +43,13 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: coupleAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
+        error: (e, _) => const Center(child: Text('오류가 발생했어요. 다시 시도해주세요.')),
         data: (couple) {
           if (couple == null) {
             return Center(
               child: FilledButton(
                 onPressed: () => context.go('/couple-setup'),
-                child: const Text('Set up your couple'),
+                child: const Text('커플 연결하기'),
               ),
             );
           }
@@ -65,12 +65,12 @@ class HomeScreen extends ConsumerWidget {
                     const Icon(Icons.hourglass_top, size: 48, color: Colors.grey),
                     const SizedBox(height: 16),
                     const Text(
-                      'Waiting for your partner...',
+                      '파트너를 기다리는 중...',
                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Share this code with your partner:',
+                      '파트너에게 이 코드를 공유하세요:',
                       style: TextStyle(color: Colors.grey),
                     ),
                     const SizedBox(height: 16),
@@ -78,7 +78,7 @@ class HomeScreen extends ConsumerWidget {
                       onTap: () {
                         Clipboard.setData(ClipboardData(text: couple.inviteCode));
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Invite code copied!')),
+                          const SnackBar(content: Text('초대 코드가 복사됐어요!')),
                         );
                       },
                       child: Container(
@@ -115,7 +115,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Tap to copy',
+                      '탭해서 복사',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -126,10 +126,10 @@ class HomeScreen extends ConsumerWidget {
 
           return hasPostedAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
+            error: (e, _) => const Center(child: Text('오류가 발생했어요. 다시 시도해주세요.')),
             data: (hasPosted) => todayPhotosAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => const Center(child: Text('Something went wrong. Please try again.')),
+              error: (e, _) => const Center(child: Text('오류가 발생했어요. 다시 시도해주세요.')),
               data: (photos) {
                 final partnerPhoto = photos.where(
                     (p) => p.userId != user?.id).firstOrNull;
@@ -145,14 +145,14 @@ class HomeScreen extends ConsumerWidget {
                         child: hasPosted && partnerPhoto != null
                             ? TodayPhotoCard(
                                 photo: partnerPhoto,
-                                label: 'Partner\'s photo',
+                                label: '파트너의 사진',
                                 showReactions: true,
                               )
                             : const LockScreenWidget(),
                       ),
                       if (myPhoto != null) ...[
                         const SizedBox(height: 12),
-                        TodayPhotoCard(photo: myPhoto, label: 'Your photo'),
+                        TodayPhotoCard(photo: myPhoto, label: '내 사진'),
                       ],
                       const SizedBox(height: 16),
                       const PromptCard(),
@@ -169,7 +169,7 @@ class HomeScreen extends ConsumerWidget {
           ? FloatingActionButton.extended(
               onPressed: () => context.push('/upload'),
               icon: const Icon(Icons.add_a_photo),
-              label: const Text('Post today\'s photo'),
+              label: const Text('오늘의 사진 올리기'),
             )
           : null,
     );

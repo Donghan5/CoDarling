@@ -16,7 +16,7 @@ class CalendarScreen extends ConsumerWidget {
     final isLoading = ref.watch(albumPhotosProvider).isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Calendar')),
+      appBar: AppBar(title: const Text('달력')),
       body: Column(
         children: [
           _MonthHeader(month: month),
@@ -44,7 +44,7 @@ class _MonthHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final label = DateFormat('MMMM yyyy').format(month);
+    final label = DateFormat('yyyy년 M월', 'ko').format(month);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
@@ -79,7 +79,7 @@ class _MonthHeader extends ConsumerWidget {
 class _WeekdayLabels extends StatelessWidget {
   const _WeekdayLabels();
 
-  static const _labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _labels = ['월', '화', '수', '목', '금', '토', '일'];
 
   @override
   Widget build(BuildContext context) {
@@ -250,7 +250,7 @@ class _DayPhotosSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final label = DateFormat('MMMM d, yyyy').format(date);
+    final label = DateFormat('yyyy년 M월 d일', 'ko').format(date);
     return DraggableScrollableSheet(
       initialChildSize: 0.6,
       minChildSize: 0.3,

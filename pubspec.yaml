@@ -48,6 +48,27 @@ dev_dependencies:
   riverpod_generator: ^2.6.1
   mockito: ^5.4.5
   mocktail: ^1.0.4
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/CoDarling_app_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/CoDarling_app_icon.png"
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: "assets/images/CoDarling_loading_image.png"
+  android: true
+  ios: true
+  android_gravity: center
+  ios_content_mode: center
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/images/
