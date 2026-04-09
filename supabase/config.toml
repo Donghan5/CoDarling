@@ -109,7 +109,8 @@ port = 54324
 [storage]
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
-file_size_limit = "50MiB"
+# Keep this in sync with AppConstants.maxPhotoFileSizeBytes (10 MB) in the Flutter app.
+file_size_limit = "10MiB"
 
 # Uncomment to configure local storage buckets
 # [storage.buckets.images]

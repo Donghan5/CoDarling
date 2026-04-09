@@ -13,20 +13,15 @@ const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
 
 Deno.serve(async (req: Request) => {
   // ── Auth check ─────────────────────────────────────────────────────────────
-  // Accepts: Bearer <METRICS_SECRET>  (for Grafana Agent)
-  //          Bearer <valid_user_jwt>  (for manual inspection)
+  // Accepts: Bearer <METRICS_SECRET>  (for Grafana Agent only)
+  // User JWTs are intentionally rejected — this endpoint exposes aggregate
+  // business data (user counts, couple stats) that should not be accessible
+  // to individual app users.
   const authHeader = req.headers.get("Authorization") ?? "";
   const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
 
-  if (!token) {
+  if (!METRICS_SECRET || token !== METRICS_SECRET) {
     return text("Unauthorized", 401);
-  }
-
-  if (METRICS_SECRET && token === METRICS_SECRET) {
-    // Grafana Agent — static secret, passes through
-  } else {
-    const { error } = await supabase.auth.getUser(token);
-    if (error) return text("Unauthorized", 401);
   }
 
   // ── Collect metrics ────────────────────────────────────────────────────────

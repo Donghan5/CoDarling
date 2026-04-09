@@ -3,6 +3,11 @@
 tools/
 run.sh
 
+# Android release signing — never commit
+android/key.properties
+android/app/*.jks
+android/app/*.keystore
+
 # Miscellaneous
 *.class
 *.log
