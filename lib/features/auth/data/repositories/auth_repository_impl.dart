@@ -1,16 +1,15 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/services/metrics_service.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(this._dataSource, this._metrics);
+  const AuthRepositoryImpl(this._dataSource);
 
   final AuthRemoteDataSource _dataSource;
-  final MetricsService _metrics;
 
   @override
   Stream<UserEntity?> get authStateChanges => _dataSource.authStateChanges;
@@ -18,13 +17,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> signInWithGoogle() async {
     try {
-      await _metrics.measure(
-        table: 'auth',
-        operation: 'sign_in_google',
-        action: _dataSource.signInWithGoogle,
-      );
+      await _dataSource.signInWithGoogle();
       return const Right(null);
     } catch (e) {
+      debugPrint('[AuthRepo] signInWithGoogle error: $e');
       return Left(AuthFailure(_toUserMessage(e)));
     }
   }
@@ -32,13 +28,10 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, void>> signOut() async {
     try {
-      await _metrics.measure(
-        table: 'auth',
-        operation: 'sign_out',
-        action: _dataSource.signOut,
-      );
+      await _dataSource.signOut();
       return const Right(null);
     } catch (e) {
+      debugPrint('[AuthRepo] signOut error: $e');
       return Left(AuthFailure(_toUserMessage(e)));
     }
   }
@@ -46,13 +39,9 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
     try {
-      final user = await _metrics.measure(
-        table: 'users',
-        operation: 'select',
-        action: _dataSource.getCurrentUser,
-      );
-      return Right(user);
+      return Right(await _dataSource.getCurrentUser());
     } catch (e) {
+      debugPrint('[AuthRepo] getCurrentUser error: $e');
       return Left(AuthFailure(_toUserMessage(e)));
     }
   }

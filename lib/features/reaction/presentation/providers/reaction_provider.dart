@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/metrics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/reaction_remote_datasource.dart';
 import '../../data/repositories/reaction_repository_impl.dart';
@@ -13,10 +12,7 @@ final reactionDataSourceProvider = Provider<ReactionRemoteDataSource>(
 );
 
 final reactionRepositoryProvider = Provider(
-  (ref) => ReactionRepositoryImpl(
-    ref.watch(reactionDataSourceProvider),
-    ref.watch(metricsServiceProvider),
-  ),
+  (ref) => ReactionRepositoryImpl(ref.watch(reactionDataSourceProvider)),
 );
 
 final addReactionProvider = Provider(

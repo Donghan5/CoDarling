@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../core/services/metrics_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../couple/presentation/providers/couple_provider.dart';
 import '../../data/datasources/photo_remote_datasource.dart';
@@ -10,15 +9,38 @@ import '../../domain/usecases/get_today_photos.dart';
 import '../../domain/usecases/upload_photo.dart';
 import '../../../../core/utils/date_utils.dart';
 
+/// Currently viewed month on the calendar screen (year + month only).
+final calendarMonthProvider = StateProvider<DateTime>((ref) {
+  final now = DateTime.now();
+  return DateTime(now.year, now.month);
+});
+
+/// All album photos grouped by ISO date string ('yyyy-MM-dd').
+final photosByDateProvider = Provider<Map<String, List<PhotoEntity>>>((ref) {
+  return ref.watch(albumPhotosProvider).maybeWhen(
+    data: (photos) {
+      final map = <String, List<PhotoEntity>>{};
+      for (final p in photos) {
+        final key = _isoDate(p.date);
+        (map[key] ??= []).add(p);
+      }
+      return map;
+    },
+    orElse: () => const {},
+  );
+});
+
+String _isoDate(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-'
+    '${d.month.toString().padLeft(2, '0')}-'
+    '${d.day.toString().padLeft(2, '0')}';
+
 final photoDataSourceProvider = Provider<PhotoRemoteDataSource>(
   (ref) => SupabasePhotoDataSource(ref.watch(supabaseClientProvider)),
 );
 
 final photoRepositoryProvider = Provider(
-  (ref) => PhotoRepositoryImpl(
-    ref.watch(photoDataSourceProvider),
-    ref.watch(metricsServiceProvider),
-  ),
+  (ref) => PhotoRepositoryImpl(ref.watch(photoDataSourceProvider)),
 );
 
 final uploadPhotoProvider = Provider(

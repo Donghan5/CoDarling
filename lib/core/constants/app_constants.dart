@@ -28,5 +28,5 @@ class AppConstants {
   static const String promptsTable = 'prompts';
   static const String promptRepliesTable = 'prompt_replies';
   static const String reactionsTable = 'reactions';
-  static const String appMetricsTable = 'app_metrics';
+  static const String fcmTokensTable = 'fcm_tokens';
 }

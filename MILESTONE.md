@@ -34,8 +34,8 @@
 #### 모니터링
 - [x] `MetricsService` — 모든 repository 호출을 wrap, 30초마다 flush
 - [x] Supabase Edge Function `/metrics` — Prometheus 형식 응답
-- [x] `monitoring/grafana-agent.yaml` — Grafana Agent 설정
 - [x] 메트릭 엔드포인트 인증: `METRICS_SECRET` (supabase secrets에 등록됨)
+- [x] 로깅 기반으로 전환 (Grafana Cloud 연동 계획 제거)
 
 ---
 
@@ -51,42 +51,28 @@
 - [x] 실시간 업데이트 (Supabase Realtime 구독 — PostgresChangeEvent)
 
 #### 오늘의 질문 (Daily Prompt)
-- [ ] `PromptRemoteDataSource.getTodayPrompt()` / `submitAnswer()` 구현
-- [ ] 홈 화면에 질문 카드 표시
-- [ ] 두 사람 모두 답변 시 서로 답변 공개 (사진 lock과 동일한 패턴)
+- [x] `PromptRemoteDataSource.getTodayPrompt()` / `submitReply()` 구현
+- [x] 홈 화면에 질문 카드 표시
+- [x] 두 사람 모두 답변 시 서로 답변 공개 (사진 lock과 동일한 패턴)
 
 #### 달력 뷰
-- [ ] 지난 날짜의 사진 목록 불러오기
-- [ ] 월별 달력 UI + 날짜 탭 → 해당 날 사진 보기
+- [x] 지난 날짜의 사진 목록 불러오기 (albumPhotosProvider 재사용, 날짜별 그룹핑)
+- [x] 월별 달력 UI + 날짜 탭 → 해당 날 사진 보기 (BottomSheet)
 
 ### 2순위 — 완성도
 
 #### 푸시 알림
-- [ ] `firebase_messaging` 또는 `flutter_local_notifications` 패키지 추가
-- [ ] 파트너가 사진 업로드했을 때 알림
-- [ ] Supabase DB Webhook → Edge Function → FCM
+- [x] `firebase_core`, `firebase_messaging` 패키지 추가
+- [x] `fcm_tokens` 테이블 마이그레이션 (`20260409100000_fcm_tokens.sql`)
+- [x] `PushNotificationService` — 토큰 저장/갱신/삭제, 탭 이벤트 처리
+- [x] Edge Function `push-notification` — DB Webhook → FCM HTTP v1
+- [x] `main.dart`에 Firebase 초기화 + auth 상태 연동
+- [ ] **수동 작업 필요** (아래 참고)
 
 #### E2E 테스트
-- [ ] 로그인 → 커플 연결 → 사진 업로드 → 사진 공개 흐름 테스트
-- [ ] `flutter drive` 또는 Patrol 사용
-
-### 3순위 — 모니터링 연결
-
-#### Grafana Cloud 연동
-- [ ] [grafana.com](https://grafana.com) 가입 (무료 티어)
-- [ ] **My Account → Grafana Cloud → Details** 에서:
-  - `Prometheus remote_write URL` 메모
-  - `Instance ID` 메모
-  - API Key 생성
-- [ ] Grafana Agent 실행:
-  ```bash
-  export METRICS_SECRET=<.dart_define.json의 METRICS_SECRET 값>
-  export PROMETHEUS_URL=<remote_write_url>
-  export PROMETHEUS_USER=<instance_id>
-  export PROMETHEUS_PASSWORD=<api_key>
-  ./grafana-agent-linux-amd64 --config.file=./monitoring/grafana-agent.yaml
-  ```
-- [ ] Grafana 대시보드 생성 (`monitoring/README.md` 내 PromQL 쿼리 사용)
+- [x] 위젯 테스트 14개 (LoginScreen, PromptCard, HomeScreen)
+- [x] `integration_test/app_test.dart` — 실 디바이스 smoke test skeleton
+- [ ] Firebase 연동 완료 후 실 디바이스 E2E 실행 검증
 
 ---
 
@@ -112,16 +98,32 @@ adb install -r build/app/outputs/flutter-apk/app-debug.apk
 adb shell am start -n com.example.codarling/.MainActivity
 ```
 
-### 메트릭 엔드포인트 확인
+### 푸시 알림 설정 (수동 작업)
+
+**1. Firebase 프로젝트 생성**
+- https://console.firebase.google.com → 새 프로젝트 → Android 앱 등록 (패키지: `com.codarling.codarling`)
+- `google-services.json` 다운로드 → `android/app/google-services.json`에 배치 (gitignore됨)
+
+**2. Service Account 키 등록**
+- Firebase Console → Project Settings → Service accounts → Generate new private key
+- 다운로드한 JSON 파일 전체 내용을 Supabase에 등록:
 ```bash
-curl -H "Authorization: Bearer $METRICS_SECRET" \
-  https://ecdshhuvypmgxalpriab.supabase.co/functions/v1/metrics
+~/.local/bin/supabase secrets set FCM_SERVICE_ACCOUNT_KEY='<JSON 파일 내용>' --project-ref ecdshhuvypmgxalpriab
 ```
 
-### Edge Function 재배포
+**3. DB 마이그레이션 적용**
+- Supabase Dashboard → SQL Editor에서 `supabase/migrations/20260409100000_fcm_tokens.sql` 실행
+
+**4. Edge Function 배포**
 ```bash
-~/.local/bin/supabase functions deploy metrics --project-ref ecdshhuvypmgxalpriab --no-verify-jwt
+~/.local/bin/supabase functions deploy push-notification --project-ref ecdshhuvypmgxalpriab --no-verify-jwt
 ```
+
+**5. DB Webhook 설정**
+- Supabase Dashboard → Database → Webhooks → Create webhook
+  - Name: `photo_insert_push_notification`
+  - Table: `photos` / Event: `INSERT`
+  - Type: Supabase Edge Functions → `push-notification`
 
 ### 주요 파일 경로
 | 항목 | 경로 |

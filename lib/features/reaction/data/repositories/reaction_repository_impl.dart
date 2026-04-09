@@ -1,16 +1,15 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/services/metrics_service.dart';
 import '../../domain/entities/reaction_entity.dart';
 import '../../domain/repositories/reaction_repository.dart';
 import '../datasources/reaction_remote_datasource.dart';
 
 class ReactionRepositoryImpl implements ReactionRepository {
-  const ReactionRepositoryImpl(this._dataSource, this._metrics);
+  const ReactionRepositoryImpl(this._dataSource);
 
   final ReactionRemoteDataSource _dataSource;
-  final MetricsService _metrics;
 
   @override
   Future<Either<Failure, List<ReactionEntity>>> getReactions({
@@ -18,15 +17,12 @@ class ReactionRepositoryImpl implements ReactionRepository {
     required String targetId,
   }) async {
     try {
-      return Right(await _metrics.measure(
-        table: 'reactions',
-        operation: 'select',
-        action: () => _dataSource.getReactions(
-          targetType: targetType,
-          targetId: targetId,
-        ),
+      return Right(await _dataSource.getReactions(
+        targetType: targetType,
+        targetId: targetId,
       ));
     } catch (e) {
+      debugPrint('[ReactionRepo] getReactions error: $e');
       return Left(ServerFailure(_toUserMessage(e)));
     }
   }
@@ -39,17 +35,14 @@ class ReactionRepositoryImpl implements ReactionRepository {
     required String emoji,
   }) async {
     try {
-      return Right(await _metrics.measure(
-        table: 'reactions',
-        operation: 'insert',
-        action: () => _dataSource.addReaction(
-          userId: userId,
-          targetType: targetType,
-          targetId: targetId,
-          emoji: emoji,
-        ),
+      return Right(await _dataSource.addReaction(
+        userId: userId,
+        targetType: targetType,
+        targetId: targetId,
+        emoji: emoji,
       ));
     } catch (e) {
+      debugPrint('[ReactionRepo] addReaction error: $e');
       return Left(ServerFailure(_toUserMessage(e)));
     }
   }
@@ -62,18 +55,15 @@ class ReactionRepositoryImpl implements ReactionRepository {
     required String emoji,
   }) async {
     try {
-      await _metrics.measure(
-        table: 'reactions',
-        operation: 'delete',
-        action: () => _dataSource.removeReaction(
-          userId: userId,
-          targetType: targetType,
-          targetId: targetId,
-          emoji: emoji,
-        ),
+      await _dataSource.removeReaction(
+        userId: userId,
+        targetType: targetType,
+        targetId: targetId,
+        emoji: emoji,
       );
       return const Right(unit);
     } catch (e) {
+      debugPrint('[ReactionRepo] removeReaction error: $e');
       return Left(ServerFailure(_toUserMessage(e)));
     }
   }

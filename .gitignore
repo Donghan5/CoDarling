@@ -8,6 +8,10 @@ android/key.properties
 android/app/*.jks
 android/app/*.keystore
 
+# Firebase — never commit (contains API keys)
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
 # Miscellaneous
 *.class
 *.log

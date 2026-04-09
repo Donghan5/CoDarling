@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../couple/presentation/providers/couple_provider.dart';
+import '../../../prompt/presentation/widgets/prompt_card.dart';
 import '../providers/photo_provider.dart';
 import '../widgets/today_photo_card.dart';
 import '../widgets/lock_screen_widget.dart';
@@ -135,24 +136,27 @@ class HomeScreen extends ConsumerWidget {
                 final myPhoto = photos.where(
                     (p) => p.userId == user?.id).firstOrNull;
 
-                return Padding(
+                return SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     children: [
-                      if (hasPosted && partnerPhoto != null)
-                        Expanded(
-                          child: TodayPhotoCard(
-                            photo: partnerPhoto,
-                            label: 'Partner\'s photo',
-                            showReactions: true,
-                          ),
-                        )
-                      else if (!hasPosted)
-                        const Expanded(child: LockScreenWidget()),
+                      SizedBox(
+                        height: 320,
+                        child: hasPosted && partnerPhoto != null
+                            ? TodayPhotoCard(
+                                photo: partnerPhoto,
+                                label: 'Partner\'s photo',
+                                showReactions: true,
+                              )
+                            : const LockScreenWidget(),
+                      ),
                       if (myPhoto != null) ...[
                         const SizedBox(height: 12),
                         TodayPhotoCard(photo: myPhoto, label: 'Your photo'),
                       ],
+                      const SizedBox(height: 16),
+                      const PromptCard(),
+                      const SizedBox(height: 80), // FAB clearance
                     ],
                   ),
                 );

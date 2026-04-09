@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/services/metrics_provider.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/entities/user_entity.dart';
@@ -18,10 +17,7 @@ final authDataSourceProvider = Provider<AuthRemoteDataSource>(
 );
 
 final authRepositoryProvider = Provider(
-  (ref) => AuthRepositoryImpl(
-    ref.watch(authDataSourceProvider),
-    ref.watch(metricsServiceProvider),
-  ),
+  (ref) => AuthRepositoryImpl(ref.watch(authDataSourceProvider)),
 );
 
 final signInWithGoogleProvider = Provider(

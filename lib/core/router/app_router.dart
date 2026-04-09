@@ -7,6 +7,7 @@ import '../../features/couple/presentation/providers/couple_provider.dart';
 import '../../features/couple/presentation/screens/couple_setup_screen.dart';
 import '../../features/photo/presentation/screens/home_screen.dart';
 import '../../features/photo/presentation/screens/album_screen.dart';
+import '../../features/photo/presentation/screens/calendar_screen.dart';
 import '../../features/photo/presentation/screens/upload_photo_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -48,6 +49,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/album',
         builder: (_, __) => const AlbumScreen(),
+      ),
+      GoRoute(
+        path: '/calendar',
+        builder: (_, __) => const CalendarScreen(),
       ),
       GoRoute(
         path: '/upload',

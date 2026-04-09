@@ -1,3 +1,5 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,8 +7,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants/supabase_constants.dart';
 import 'core/router/app_router.dart';
-import 'core/services/metrics_provider.dart';
+import 'core/services/push_notification_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
+
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('[Push] Background: ${message.notification?.title}');
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +42,9 @@ Future<void> main() async {
     anonKey: SupabaseConstants.supabaseAnonKey,
   );
 
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
   runApp(const ProviderScope(child: CodarlingApp()));
 }
 
@@ -42,8 +54,23 @@ class CodarlingApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    // Eagerly start the metrics flush timer
-    ref.watch(metricsServiceProvider);
+
+    // Initialize push notifications when user is authenticated
+    ref.listen(authStateProvider, (prev, next) {
+      final wasAuthenticated = prev?.valueOrNull != null;
+      final isAuthenticated = next.valueOrNull != null;
+      final pushService = ref.read(pushNotificationServiceProvider);
+
+      if (!wasAuthenticated && isAuthenticated) {
+        pushService.onNotificationTap = (type, data) {
+          if (type == 'photo_uploaded') router.go('/home');
+        };
+        pushService.initialize();
+      } else if (wasAuthenticated && !isAuthenticated) {
+        pushService.removeToken();
+      }
+    });
+
     return MaterialApp.router(
       title: 'Codarling',
       theme: AppTheme.light,
