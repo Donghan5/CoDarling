@@ -1,3 +1,15 @@
+enum CoupleStatus {
+  pending,
+  active;
+
+  static CoupleStatus fromJson(String value) => switch (value) {
+        'active' => CoupleStatus.active,
+        _ => CoupleStatus.pending,
+      };
+
+  String toJson() => name; // 'pending' | 'active'
+}
+
 class CoupleEntity {
   const CoupleEntity({
     required this.id,
@@ -14,19 +26,19 @@ class CoupleEntity {
   final String userId1;
   final String? userId2;
   final String inviteCode;
-  final String status; // 'pending' | 'active'
+  final CoupleStatus status;
   final DateTime? anniversary;
   final String? coupleName;
   final DateTime createdAt;
 
-  bool get isActive => status == 'active';
+  bool get isActive => status == CoupleStatus.active;
 
   CoupleEntity copyWith({
     String? id,
     String? userId1,
     String? userId2,
     String? inviteCode,
-    String? status,
+    CoupleStatus? status,
     DateTime? anniversary,
     String? coupleName,
     DateTime? createdAt,

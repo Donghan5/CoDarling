@@ -17,7 +17,7 @@ class CoupleModel extends CoupleEntity {
         userId1: json['user_id_1'] as String,
         userId2: json['user_id_2'] as String?,
         inviteCode: json['invite_code'] as String,
-        status: json['status'] as String,
+        status: CoupleStatus.fromJson(json['status'] as String),
         anniversary: json['anniversary'] != null
             ? DateTime.parse(json['anniversary'] as String)
             : null,
@@ -30,7 +30,7 @@ class CoupleModel extends CoupleEntity {
         'user_id_1': userId1,
         'user_id_2': userId2,
         'invite_code': inviteCode,
-        'status': status,
+        'status': status.toJson(),
         'anniversary': anniversary?.toIso8601String(),
         'couple_name': coupleName,
         'created_at': createdAt.toIso8601String(),

@@ -11,8 +11,41 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with WidgetsBindingObserver {
   bool _loading = false;
+
+  // True while the OAuth browser is open and we are waiting for the result.
+  bool _waitingForOAuth = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Reset the spinner if the user returns from the browser without completing
+  /// OAuth (e.g., pressing back on Android). A 3-second grace period allows
+  /// for slow redirects before giving up.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _waitingForOAuth) {
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted && _waitingForOAuth) {
+          setState(() {
+            _loading = false;
+            _waitingForOAuth = false;
+          });
+        }
+      });
+    }
+  }
 
   Future<void> _signIn() async {
     setState(() => _loading = true);
@@ -20,12 +53,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
     result.fold(
       (failure) {
-        setState(() => _loading = false);
+        setState(() {
+          _loading = false;
+          _waitingForOAuth = false;
+        });
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(failure.message)));
       },
       (_) {
-        // Browser opened; keep spinner — router redirects when auth completes.
+        setState(() => _waitingForOAuth = true);
+        // Browser opened; spinner stays — router redirects when auth completes.
       },
     );
   }

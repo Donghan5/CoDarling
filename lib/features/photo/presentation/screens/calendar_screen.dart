@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../core/utils/date_utils.dart';
 import '../../domain/entities/photo_entity.dart';
 import '../providers/photo_provider.dart';
 
@@ -124,6 +125,9 @@ class _CalendarGrid extends StatelessWidget {
     final leadingBlanks = firstDay.weekday - 1;
     final rows = ((leadingBlanks + totalDays) / 7).ceil();
 
+    // Cache today once so _isToday doesn't call DateTime.now() per cell.
+    final today = DateTime.now();
+
     return GridView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       physics: const NeverScrollableScrollPhysics(),
@@ -138,13 +142,16 @@ class _CalendarGrid extends StatelessWidget {
 
         final day = dayIndex + 1;
         final date = DateTime(month.year, month.month, day);
-        final key = _isoDateLocal(date);
+        final key = AppDateUtils.toIsoDate(date);
         final photos = photosByDate[key] ?? [];
+        final isToday = date.year == today.year &&
+            date.month == today.month &&
+            date.day == today.day;
 
         return _DayCell(
           day: day,
           hasPhotos: photos.isNotEmpty,
-          isToday: _isToday(date),
+          isToday: isToday,
           onTap: photos.isNotEmpty
               ? () => _showDayPhotos(context, date, photos)
               : null,
@@ -152,18 +159,6 @@ class _CalendarGrid extends StatelessWidget {
       },
     );
   }
-
-  static bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
-  }
-
-  static String _isoDateLocal(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-'
-      '${d.month.toString().padLeft(2, '0')}-'
-      '${d.day.toString().padLeft(2, '0')}';
 
   static void _showDayPhotos(
     BuildContext context,

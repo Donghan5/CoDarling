@@ -21,7 +21,7 @@ final photosByDateProvider = Provider<Map<String, List<PhotoEntity>>>((ref) {
     data: (photos) {
       final map = <String, List<PhotoEntity>>{};
       for (final p in photos) {
-        final key = _isoDate(p.date);
+        final key = AppDateUtils.toIsoDate(p.date);
         (map[key] ??= []).add(p);
       }
       return map;
@@ -29,11 +29,6 @@ final photosByDateProvider = Provider<Map<String, List<PhotoEntity>>>((ref) {
     orElse: () => const {},
   );
 });
-
-String _isoDate(DateTime d) =>
-    '${d.year.toString().padLeft(4, '0')}-'
-    '${d.month.toString().padLeft(2, '0')}-'
-    '${d.day.toString().padLeft(2, '0')}';
 
 final photoDataSourceProvider = Provider<PhotoRemoteDataSource>(
   (ref) => SupabasePhotoDataSource(ref.watch(supabaseClientProvider)),
@@ -62,18 +57,17 @@ final todayPhotosProvider =
   return result.fold((_) => [], (photos) => photos);
 });
 
-final hasPostedTodayProvider = FutureProvider.autoDispose<bool>((ref) async {
+/// Derived from [todayPhotosProvider] — no extra network call needed.
+final hasPostedTodayProvider = Provider.autoDispose<AsyncValue<bool>>((ref) {
   final user = ref.watch(authStateProvider).valueOrNull;
-  final couple = await ref.watch(currentCoupleProvider.future);
-  if (user == null || couple == null) return false;
-  final today = AppDateUtils.todayIso();
-  final result = await ref.read(photoRepositoryProvider).hasPostedToday(
-      coupleId: couple.id, userId: user.id, date: today);
-  return result.fold((_) => false, (v) => v);
+  return ref.watch(todayPhotosProvider).whenData(
+    (photos) => photos.any((p) => p.userId == user?.id),
+  );
 });
 
+/// Album photos kept alive across navigations so signed URLs are reused.
 final albumPhotosProvider =
-    FutureProvider.autoDispose<List<PhotoEntity>>((ref) async {
+    FutureProvider<List<PhotoEntity>>((ref) async {
   final couple = await ref.watch(currentCoupleProvider.future);
   if (couple == null) return [];
   final result = await ref

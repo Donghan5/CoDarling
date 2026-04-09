@@ -24,7 +24,7 @@ final joinCoupleProvider = Provider(
 );
 
 final currentCoupleProvider =
-    FutureProvider.autoDispose<CoupleEntity?>((ref) async {
+    FutureProvider<CoupleEntity?>((ref) async {
   final user = ref.watch(authStateProvider).valueOrNull;
   if (user == null) return null;
   final result =

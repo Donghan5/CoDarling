@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 import '../constants/app_constants.dart';
 
@@ -19,6 +21,11 @@ class PushNotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
 
   bool _initialized = false;
+  String? _cachedDeviceId;
+
+  // Subscriptions stored for clean cancellation on dispose.
+  // ignore: cancel_subscriptions
+  final _subscriptions = <dynamic>[];
 
   /// Called when user taps a notification. Receives type and payload data.
   void Function(String type, Map<String, dynamic> data)? onNotificationTap;
@@ -45,9 +52,10 @@ class PushNotificationService {
       await _saveToken(token);
     }
 
-    _messaging.onTokenRefresh.listen(_saveToken);
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
+    _subscriptions
+      ..add(_messaging.onTokenRefresh.listen(_saveToken))
+      ..add(FirebaseMessaging.onMessage.listen(_handleForegroundMessage))
+      ..add(FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap));
 
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
@@ -60,28 +68,39 @@ class PushNotificationService {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
 
+    final deviceId = await _getOrCreateDeviceId();
     try {
       await _client
           .from(AppConstants.fcmTokensTable)
           .delete()
           .eq('user_id', userId)
-          .eq('device_id', _deviceId);
+          .eq('device_id', deviceId);
       debugPrint('[Push] Token removed');
     } catch (e) {
       debugPrint('[Push] Token remove error: $e');
     }
   }
 
+  /// Cancel all stream subscriptions (call on sign-out / service teardown).
+  void dispose() {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+    _initialized = false;
+  }
+
   Future<void> _saveToken(String token) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) return;
 
+    final deviceId = await _getOrCreateDeviceId();
     try {
       await _client.from(AppConstants.fcmTokensTable).upsert(
         {
           'user_id': userId,
           'token': token,
-          'device_id': _deviceId,
+          'device_id': deviceId,
           'platform': Platform.isAndroid ? 'android' : 'ios',
         },
         onConflict: 'user_id,device_id',
@@ -101,6 +120,19 @@ class PushNotificationService {
     onNotificationTap?.call(type, message.data);
   }
 
-  /// Stable per-platform device identifier.
-  String get _deviceId => Platform.operatingSystem;
+  /// Returns a stable, unique device identifier persisted across app sessions.
+  /// Generated once as a UUID v4 and stored in SharedPreferences.
+  Future<String> _getOrCreateDeviceId() async {
+    if (_cachedDeviceId != null) return _cachedDeviceId!;
+    final prefs = await SharedPreferences.getInstance();
+    final existing = prefs.getString('push_device_id');
+    if (existing != null) {
+      _cachedDeviceId = existing;
+      return existing;
+    }
+    final newId = const Uuid().v4();
+    await prefs.setString('push_device_id', newId);
+    _cachedDeviceId = newId;
+    return newId;
+  }
 }

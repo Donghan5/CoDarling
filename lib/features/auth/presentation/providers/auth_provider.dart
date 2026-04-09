@@ -33,9 +33,9 @@ final authStateProvider = StreamProvider<UserEntity?>(
   (ref) => ref.watch(authRepositoryProvider).authStateChanges,
 );
 
-/// Convenience provider for the current user (throws if not authenticated).
-final currentUserProvider = Provider<UserEntity>(
-  (ref) => ref.watch(authStateProvider).requireValue!,
+/// Convenience provider for the current user (null = signed out or loading).
+final currentUserProvider = Provider<UserEntity?>(
+  (ref) => ref.watch(authStateProvider).valueOrNull,
 );
 
 /// Debug-only: email/password sign-in for test accounts.

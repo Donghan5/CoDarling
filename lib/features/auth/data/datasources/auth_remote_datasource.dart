@@ -69,7 +69,8 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
       return UserModel.fromJson(rows.first);
     }
 
-    // First sign-in — insert user row
+    // First sign-in (or race recovery) — upsert to avoid TOCTOU duplicate insert.
+    // onConflict 'id' makes this idempotent if two auth events fire concurrently.
     final email = user.email ?? '';
     final rawName =
         user.userMetadata?['full_name'] as String? ?? email.split('@').first;
@@ -78,17 +79,21 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
         .substring(0, rawName.trim().length.clamp(0, AppConstants.maxDisplayNameLength));
     final avatarUrl = user.userMetadata?['avatar_url'] as String?;
 
-    final inserted = await _client
+    final upserted = await _client
         .from(AppConstants.usersTable)
-        .insert({
-          'id': user.id,
-          'email': email,
-          'display_name': displayName,
-          'avatar_url': avatarUrl,
-        })
+        .upsert(
+          {
+            'id': user.id,
+            'email': email,
+            'display_name': displayName,
+            'avatar_url': avatarUrl,
+          },
+          onConflict: 'id',
+          ignoreDuplicates: false,
+        )
         .select()
         .single();
 
-    return UserModel.fromJson(inserted);
+    return UserModel.fromJson(upserted);
   }
 }

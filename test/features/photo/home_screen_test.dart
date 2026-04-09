@@ -25,7 +25,7 @@ void main() {
       await tester.pumpWidget(buildSubject(overrides: [
         authStateProvider.overrideWith((_) => Stream.value(testUser)),
         currentCoupleProvider.overrideWith((_) async => null),
-        hasPostedTodayProvider.overrideWith((_) async => false),
+        hasPostedTodayProvider.overrideWith((_) => const AsyncValue.data(false)),
         todayPhotosProvider.overrideWith((_) async => []),
         todayPromptStateProvider.overrideWith((_) async => null),
       ]));
@@ -41,7 +41,7 @@ void main() {
         authStateProvider.overrideWith((_) => Stream.value(testUser)),
         currentCoupleProvider
             .overrideWith((_) async => testCouplePending),
-        hasPostedTodayProvider.overrideWith((_) async => false),
+        hasPostedTodayProvider.overrideWith((_) => const AsyncValue.data(false)),
         todayPhotosProvider.overrideWith((_) async => []),
         todayPromptStateProvider.overrideWith((_) async => null),
       ]));
@@ -59,7 +59,7 @@ void main() {
         authStateProvider.overrideWith((_) => Stream.value(testUser)),
         currentCoupleProvider
             .overrideWith((_) async => testCoupleActive),
-        hasPostedTodayProvider.overrideWith((_) async => false),
+        hasPostedTodayProvider.overrideWith((_) => const AsyncValue.data(false)),
         todayPhotosProvider.overrideWith((_) async => []),
         todayPromptStateProvider.overrideWith((_) async => null),
       ]));
@@ -86,7 +86,7 @@ void main() {
         authStateProvider.overrideWith((_) => Stream.value(testUser)),
         currentCoupleProvider
             .overrideWith((_) async => testCoupleActive),
-        hasPostedTodayProvider.overrideWith((_) async => false),
+        hasPostedTodayProvider.overrideWith((_) => const AsyncValue.data(false)),
         todayPhotosProvider.overrideWith((_) async => []),
         todayPromptStateProvider.overrideWith((_) async => promptState),
       ]));

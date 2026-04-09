@@ -36,6 +36,10 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
   // Signed URL validity: 7 days (seconds)
   static const _signedUrlExpiry = 60 * 60 * 24 * 7;
 
+  // In-memory signed URL cache: storage path → signed URL.
+  // Safe for the app session since URLs are valid for 7 days.
+  final Map<String, String> _urlCache = {};
+
   @override
   Future<PhotoModel> uploadPhoto({
     required File file,
@@ -79,6 +83,9 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
     final signedUrl = await _client.storage
         .from(AppConstants.photosBucket)
         .createSignedUrl(storagePath, _signedUrlExpiry);
+
+    // Warm the cache so the photo is immediately available without a re-fetch.
+    _urlCache[storagePath] = signedUrl;
 
     return PhotoModel.fromJson({...result, 'image_url': signedUrl});
   }
@@ -127,14 +134,21 @@ class SupabasePhotoDataSource implements PhotoRemoteDataSource {
     final data = rows.cast<Map<String, dynamic>>();
     final paths = data.map((r) => r['image_url'] as String).toList();
 
-    final signedUrls = await _client.storage
-        .from(AppConstants.photosBucket)
-        .createSignedUrls(paths, _signedUrlExpiry);
+    // Only request signed URLs for paths not already in the session cache.
+    final uncached = paths.where((p) => !_urlCache.containsKey(p)).toList();
+    if (uncached.isNotEmpty) {
+      final freshUrls = await _client.storage
+          .from(AppConstants.photosBucket)
+          .createSignedUrls(uncached, _signedUrlExpiry);
+      for (var i = 0; i < uncached.length; i++) {
+        _urlCache[uncached[i]] = freshUrls[i].signedUrl;
+      }
+    }
 
-    return data.asMap().entries.map((entry) {
-      final row = Map<String, dynamic>.from(entry.value);
-      row['image_url'] = signedUrls[entry.key].signedUrl;
-      return PhotoModel.fromJson(row);
+    return data.map((row) {
+      final r = Map<String, dynamic>.from(row);
+      r['image_url'] = _urlCache[r['image_url'] as String] ?? '';
+      return PhotoModel.fromJson(r);
     }).toList();
   }
 }

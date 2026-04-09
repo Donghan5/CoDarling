@@ -24,7 +24,7 @@ CoupleEntity get testCoupleActive => CoupleEntity(
       userId1: 'user-alice',
       userId2: 'user-bob',
       inviteCode: 'LOVE-AB1234',
-      status: 'active',
+      status: CoupleStatus.active,
       createdAt: DateTime(2026, 1, 1),
     );
 
@@ -32,7 +32,7 @@ CoupleEntity get testCouplePending => CoupleEntity(
       id: 'couple-2',
       userId1: 'user-alice',
       inviteCode: 'LOVE-XY9999',
-      status: 'pending',
+      status: CoupleStatus.pending,
       createdAt: DateTime(2026, 1, 1),
     );
 

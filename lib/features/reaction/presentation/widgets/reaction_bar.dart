@@ -236,7 +236,7 @@ class _EmojiPickerSheet extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Text(
-              'React with an emoji',
+              '이모지로 반응하기',
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
