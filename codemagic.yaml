@@ -9,13 +9,15 @@ workflows:
       xcode: latest
       cocoapods: default
       groups:
-        - app_store_connect   # APP_STORE_CONNECT_KEY_IDENTIFIER, ISSUER_ID, PRIVATE_KEY
+        - app_store_connect   # APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_ISSUER_ID, APP_STORE_CONNECT_PRIVATE_KEY
         - firebase_ios        # GOOGLE_SERVICE_INFO_PLIST (base64)
         - dart_define         # SUPABASE_URL, SUPABASE_ANON_KEY, DEV_TEST_PASSWORD
       vars:
         BUNDLE_ID: com.codarling.codarling
         XCODE_WORKSPACE: ios/Runner.xcworkspace
         XCODE_SCHEME: Runner
+        # Set APPLE_TEAM_ID in Codemagic environment or app_store_connect group
+        # Find it at: https://developer.apple.com/account → Membership → Team ID
 
     triggering:
       events:
@@ -34,6 +36,7 @@ workflows:
 
       - name: Set up code signing
         script: |
+          set -e
           keychain initialize
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
@@ -41,6 +44,8 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles
+          echo "✅ Provisioning profiles installed:"
+          ls ~/Library/MobileDevice/Provisioning\ Profiles/ || echo "  (none found)"
 
       - name: Flutter build iOS
         script: |
@@ -53,9 +58,12 @@ workflows:
 
       - name: Package IPA
         script: |
+          # Substitute team ID into ExportOptions.plist
+          sed -i '' "s/\$(APPLE_TEAM_ID)/$APPLE_TEAM_ID/" ios/ExportOptions.plist
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
-            --scheme "$XCODE_SCHEME"
+            --scheme "$XCODE_SCHEME" \
+            --export-options-plist ios/ExportOptions.plist
 
     artifacts:
       - build/ios/ipa/*.ipa
