@@ -8,14 +8,15 @@ workflows:
       flutter: 3.29.3
       xcode: latest
       cocoapods: default
-      # Variable groups (create in Codemagic → Team → Global variables and secrets):
+      # Variable groups must be created in Codemagic → Team → Global variables and secrets:
       #   app_store_connect : APP_STORE_CONNECT_KEY_IDENTIFIER, APP_STORE_CONNECT_ISSUER_ID,
       #                       APP_STORE_CONNECT_PRIVATE_KEY, APPLE_TEAM_ID
       #   firebase_ios      : GOOGLE_SERVICE_INFO_PLIST (base64-encoded plist)
       #   dart_define       : SUPABASE_URL, SUPABASE_ANON_KEY, DEV_TEST_PASSWORD
-      #
-      # If groups are not yet created, set these variables directly in the
-      # Codemagic app environment (App → Environment variables tab).
+      groups:
+        - app_store_connect
+        - firebase_ios
+        - dart_define
       vars:
         BUNDLE_ID: com.codarling.codarling
         XCODE_WORKSPACE: ios/Runner.xcworkspace
