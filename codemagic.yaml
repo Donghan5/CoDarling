@@ -52,15 +52,18 @@ workflows:
           echo "PRIVATE_KEY first line: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | head -1)"
           # Write private key to file to avoid newline issues
           printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
-          echo ">>> list existing certificates"
+          echo ">>> create distribution certificate"
           app-store-connect --log-stream stdout \
-            list-certificates \
+            certificates create \
+            --type IOS_DISTRIBUTION \
+            --save \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "@file:/tmp/auth_key.p8" \
-            --type IOS_DISTRIBUTION || true
+            --private-key "@file:/tmp/auth_key.p8"
+          echo ">>> keychain add-certificates"
+          keychain add-certificates
           echo ">>> fetch-signing-files"
-          app-store-connect --log-stream stdout -v \
+          app-store-connect --log-stream stdout \
             fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
@@ -68,8 +71,6 @@ workflows:
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "@file:/tmp/auth_key.p8"
-          echo ">>> keychain add-certificates"
-          keychain add-certificates
           echo ">>> xcode-project use-profiles"
           xcode-project use-profiles
           echo "✅ Provisioning profiles installed:"
