@@ -44,8 +44,11 @@ workflows:
           set -e
           echo ">>> keychain initialize"
           keychain initialize
+          echo ">>> list existing certificates"
+          app-store-connect --log-stream stdout certificates list --type IOS_DISTRIBUTION || true
+          app-store-connect --log-stream stdout certificates list --type DISTRIBUTION || true
           echo ">>> fetch-signing-files"
-          app-store-connect -v fetch-signing-files \
+          app-store-connect --log-stream stdout -v fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
