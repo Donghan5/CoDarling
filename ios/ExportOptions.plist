@@ -16,4 +16,5 @@
     <true/>
     <key>teamID</key>
     <string>$(APPLE_TEAM_ID)</string>
+</dict>
 </plist>
