@@ -52,10 +52,13 @@ workflows:
           echo "PRIVATE_KEY first line: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | head -1)"
           # Write private key to file to avoid newline issues
           printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
+          echo ">>> generate certificate RSA key"
+          openssl genrsa -out /tmp/cert_key.pem 2048
           echo ">>> create distribution certificate"
           app-store-connect --log-stream stdout \
             certificates create \
             --type IOS_DISTRIBUTION \
+            --certificate-key "@file:/tmp/cert_key.pem" \
             --save \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
