@@ -43,11 +43,14 @@ workflows:
         script: |
           set -e
           keychain initialize
+          # Import distribution certificate from environment variable
+          echo "$DISTRIBUTION_CERTIFICATE_P12" | base64 --decode > /tmp/distribution.p12
+          keychain add-certificates --certificate /tmp/distribution.p12 \
+            --certificate-password "$DISTRIBUTION_CERTIFICATE_PWD"
           app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
-          keychain add-certificates
           xcode-project use-profiles
           echo "✅ Provisioning profiles installed:"
           ls ~/Library/MobileDevice/Provisioning\ Profiles/ || echo "  (none found)"
