@@ -48,12 +48,22 @@ workflows:
           echo "ISSUER_ID length: ${#APP_STORE_CONNECT_ISSUER_ID}"
           echo "KEY_ID length: ${#APP_STORE_CONNECT_KEY_IDENTIFIER}"
           echo "PRIVATE_KEY length: ${#APP_STORE_CONNECT_PRIVATE_KEY}"
+          echo "PRIVATE_KEY line count: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | wc -l)"
           echo "PRIVATE_KEY first line: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | head -1)"
+          # Write private key to file to avoid newline issues
+          printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
           echo ">>> list existing certificates"
-          app-store-connect --log-stream stdout certificates list --type IOS_DISTRIBUTION || true
-          app-store-connect --log-stream stdout certificates list --type DISTRIBUTION || true
+          app-store-connect --log-stream stdout \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "@file:/tmp/auth_key.p8" \
+            certificates list --type IOS_DISTRIBUTION || true
           echo ">>> fetch-signing-files"
-          app-store-connect --log-stream stdout -v fetch-signing-files \
+          app-store-connect --log-stream stdout -v \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "@file:/tmp/auth_key.p8" \
+            fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create
