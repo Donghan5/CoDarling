@@ -54,19 +54,20 @@ workflows:
           printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
           echo ">>> list existing certificates"
           app-store-connect --log-stream stdout \
+            list-certificates \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "@file:/tmp/auth_key.p8" \
-            certificates list --type IOS_DISTRIBUTION || true
+            --type IOS_DISTRIBUTION || true
           echo ">>> fetch-signing-files"
           app-store-connect --log-stream stdout -v \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "@file:/tmp/auth_key.p8" \
             fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --create
+            --create \
+            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
+            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
+            --private-key "@file:/tmp/auth_key.p8"
           echo ">>> keychain add-certificates"
           keychain add-certificates
           echo ">>> xcode-project use-profiles"
