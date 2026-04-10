@@ -42,42 +42,21 @@ workflows:
       - name: Set up code signing
         script: |
           set -e
-          echo ">>> keychain initialize"
           keychain initialize
-          echo ">>> check api credentials"
-          echo "ISSUER_ID length: ${#APP_STORE_CONNECT_ISSUER_ID}"
-          echo "KEY_ID length: ${#APP_STORE_CONNECT_KEY_IDENTIFIER}"
-          echo "PRIVATE_KEY length: ${#APP_STORE_CONNECT_PRIVATE_KEY}"
-          echo "PRIVATE_KEY line count: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | wc -l)"
-          echo "PRIVATE_KEY first line: $(echo "$APP_STORE_CONNECT_PRIVATE_KEY" | head -1)"
-          # Write private key to file to avoid newline issues
           printf '%s' "$APP_STORE_CONNECT_PRIVATE_KEY" > /tmp/auth_key.p8
-          echo ">>> generate certificate RSA key"
+          # Generate RSA key for distribution certificate
           openssl genrsa -out /tmp/cert_key.pem 2048
-          echo ">>> create distribution certificate"
-          app-store-connect --log-stream stdout \
-            certificates create \
-            --type IOS_DISTRIBUTION \
-            --certificate-key "@file:/tmp/cert_key.pem" \
-            --save \
-            --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
-            --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
-            --private-key "@file:/tmp/auth_key.p8"
-          echo ">>> keychain add-certificates"
-          keychain add-certificates
-          echo ">>> fetch-signing-files"
-          app-store-connect --log-stream stdout \
-            fetch-signing-files \
+          # fetch-signing-files handles both certificate creation and provisioning profile
+          app-store-connect fetch-signing-files \
             "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --create \
+            --certificate-key "@file:/tmp/cert_key.pem" \
             --issuer-id "$APP_STORE_CONNECT_ISSUER_ID" \
             --key-id "$APP_STORE_CONNECT_KEY_IDENTIFIER" \
             --private-key "@file:/tmp/auth_key.p8"
-          echo ">>> xcode-project use-profiles"
+          keychain add-certificates
           xcode-project use-profiles
-          echo "✅ Provisioning profiles installed:"
-          ls ~/Library/MobileDevice/Provisioning\ Profiles/ || echo "  (none found)"
 
       - name: Flutter build iOS
         script: |
