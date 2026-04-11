@@ -1,3 +1,6 @@
+# Local notes — never commit
+codesigning-todo.md
+
 # Secrets — never commit
 .dart_define.json
 tools/

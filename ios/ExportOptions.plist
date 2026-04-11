@@ -15,6 +15,6 @@
     <key>uploadSymbols</key>
     <true/>
     <key>teamID</key>
-    <string>$(APPLE_TEAM_ID)</string>
+    <string>REPLACE_AT_BUILD_TIME</string>
 </dict>
 </plist>
