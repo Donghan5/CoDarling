@@ -69,12 +69,9 @@ workflows:
 
       - name: Package IPA
         script: |
-          sed "s/REPLACE_AT_BUILD_TIME/$APPLE_TEAM_ID/" "$CM_BUILD_DIR/ios/ExportOptions.plist" > /tmp/ExportOptions.plist
-          plutil -lint /tmp/ExportOptions.plist
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME" \
-            --export-options-plist /tmp/ExportOptions.plist \
             --verbose
 
     artifacts:
