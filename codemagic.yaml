@@ -63,6 +63,7 @@ workflows:
           flutter build ios \
             --release \
             --no-codesign \
+            --build-number=$BUILD_NUMBER \
             --dart-define=SUPABASE_URL=$SUPABASE_URL \
             --dart-define=SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY \
             --dart-define=DEV_TEST_PASSWORD=$DEV_TEST_PASSWORD
@@ -82,4 +83,3 @@ workflows:
         api_key: $APP_STORE_CONNECT_PRIVATE_KEY
         key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
         issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
