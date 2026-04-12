@@ -69,16 +69,7 @@ workflows:
 
       - name: Package IPA
         script: |
-          rm -f /tmp/ExportOptions.plist
-          /usr/libexec/PlistBuddy \
-            -c "Add :method string app-store-connect" \
-            -c "Add :destination string export" \
-            -c "Add :signingStyle string manual" \
-            -c "Add :stripSwiftSymbols bool true" \
-            -c "Add :uploadBitcode bool false" \
-            -c "Add :uploadSymbols bool true" \
-            -c "Add :teamID string $APPLE_TEAM_ID" \
-            /tmp/ExportOptions.plist
+          python3 -c "import plistlib,os; f=open('/tmp/ExportOptions.plist','wb'); plistlib.dump({'method':'app-store-connect','destination':'export','signingStyle':'manual','stripSwiftSymbols':True,'uploadBitcode':False,'uploadSymbols':True,'teamID':os.environ.get('APPLE_TEAM_ID','')},f,fmt=plistlib.FMT_XML); f.close()"
           plutil -lint /tmp/ExportOptions.plist
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
