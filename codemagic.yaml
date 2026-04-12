@@ -69,7 +69,7 @@ workflows:
 
       - name: Package IPA
         script: |
-          python3 -c "import plistlib,os; f=open('/tmp/ExportOptions.plist','wb'); plistlib.dump({'method':'app-store-connect','destination':'export','signingStyle':'manual','stripSwiftSymbols':True,'uploadBitcode':False,'uploadSymbols':True,'teamID':os.environ.get('APPLE_TEAM_ID','')},f,fmt=plistlib.FMT_XML); f.close()"
+          sed "s/REPLACE_AT_BUILD_TIME/$APPLE_TEAM_ID/" "$CM_BUILD_DIR/ios/ExportOptions.plist" > /tmp/ExportOptions.plist
           plutil -lint /tmp/ExportOptions.plist
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
