@@ -69,28 +69,17 @@ workflows:
 
       - name: Package IPA
         script: |
-          cat > /tmp/ExportOptions.plist << EOF
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>method</key>
-              <string>app-store-connect</string>
-              <key>destination</key>
-              <string>export</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>uploadBitcode</key>
-              <false/>
-              <key>uploadSymbols</key>
-              <true/>
-              <key>teamID</key>
-              <string>$APPLE_TEAM_ID</string>
-          </dict>
-          </plist>
-          EOF
+          rm -f /tmp/ExportOptions.plist
+          /usr/libexec/PlistBuddy \
+            -c "Add :method string app-store-connect" \
+            -c "Add :destination string export" \
+            -c "Add :signingStyle string manual" \
+            -c "Add :stripSwiftSymbols bool true" \
+            -c "Add :uploadBitcode bool false" \
+            -c "Add :uploadSymbols bool true" \
+            -c "Add :teamID string $APPLE_TEAM_ID" \
+            /tmp/ExportOptions.plist
+          plutil -lint /tmp/ExportOptions.plist
           xcode-project build-ipa \
             --workspace "$XCODE_WORKSPACE" \
             --scheme "$XCODE_SCHEME" \
