@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -13,6 +14,13 @@ import '../../features/photo/presentation/screens/upload_photo_screen.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: '/login',
+    onException: (_, GoRouterState state, GoRouter router) {
+      // Supabase OAuth callback URLs (e.g. io.supabase.xxx://login-callback/)
+      // arrive as deep links that GoRouter cannot match. Fall back to /login and
+      // let the authStateProvider redirect once the session is established.
+      debugPrint('[Router] No route for ${state.uri} — falling back to /login');
+      router.go('/login');
+    },
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
 
