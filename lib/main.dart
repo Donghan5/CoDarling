@@ -42,8 +42,14 @@ Future<void> main() async {
     anonKey: SupabaseConstants.supabaseAnonKey,
   );
 
-  await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e, st) {
+    // Firebase init failure must not block runApp — if this throws the native
+    // splash screen will never dismiss and the user sees a frozen launch.
+    debugPrint('=== Firebase.initializeApp() error: $e\n$st');
+  }
 
   runApp(const ProviderScope(child: CodarlingApp()));
 }
