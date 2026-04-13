@@ -47,7 +47,7 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
     await _client.auth.signInWithOAuth(
       OAuthProvider.google,
       redirectTo: AppConstants.oauthRedirectUri,
-      authScreenLaunchMode: LaunchMode.externalApplication,
+      authScreenLaunchMode: LaunchMode.inAppWebView,
     );
     // Browser launched; auth completion arrives via onAuthStateChange stream.
   }
