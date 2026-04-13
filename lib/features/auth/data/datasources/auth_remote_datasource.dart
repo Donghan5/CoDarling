@@ -20,16 +20,11 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
 
   @override
   Stream<UserModel?> get authStateChanges async* {
-    // Seed the stream immediately with the current session state.
-    // On iOS, onAuthStateChange sometimes delays the INITIAL_SESSION event,
-    // leaving the router in a perpetual loading state. Reading currentUser
-    // synchronously avoids this race condition.
-    try {
-      yield await _fetchOrCreateUserModel(_client.auth.currentUser);
-    } catch (e, st) {
-      debugPrint('=== authStateChanges initial error: $e\n$st');
-      yield null;
-    }
+    // Emit null immediately so the router escapes the loading state and shows
+    // the login screen right away. onAuthStateChange INITIAL_SESSION is
+    // sometimes delayed on iOS; this guarantees a first emission with no
+    // network call so the UI is never stuck.
+    yield null;
     yield* _client.auth.onAuthStateChange
         .map((event) => event.session?.user)
         .asyncMap((user) async {
