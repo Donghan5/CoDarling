@@ -61,12 +61,9 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/images/CoDarling_app_icon.png"
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: "assets/images/CoDarling_loading_image.png"
+  color: "#FDF6F8"
   android: true
   ios: true
-  android_gravity: center
-  ios_content_mode: center
 
 flutter:
   uses-material-design: true
