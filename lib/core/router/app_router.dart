@@ -12,7 +12,7 @@ import '../../features/photo/presentation/screens/upload_photo_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/login',
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
 

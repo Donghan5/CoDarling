@@ -19,16 +19,28 @@ class SupabaseAuthDataSource implements AuthRemoteDataSource {
   final SupabaseClient _client;
 
   @override
-  Stream<UserModel?> get authStateChanges => _client.auth.onAuthStateChange
-      .map((event) => event.session?.user)
-      .asyncMap((user) async {
-        try {
-          return await _fetchOrCreateUserModel(user);
-        } catch (e, st) {
-          debugPrint('=== authStateChanges error: $e\n$st');
-          return null;
-        }
-      });
+  Stream<UserModel?> get authStateChanges async* {
+    // Seed the stream immediately with the current session state.
+    // On iOS, onAuthStateChange sometimes delays the INITIAL_SESSION event,
+    // leaving the router in a perpetual loading state. Reading currentUser
+    // synchronously avoids this race condition.
+    try {
+      yield await _fetchOrCreateUserModel(_client.auth.currentUser);
+    } catch (e, st) {
+      debugPrint('=== authStateChanges initial error: $e\n$st');
+      yield null;
+    }
+    yield* _client.auth.onAuthStateChange
+        .map((event) => event.session?.user)
+        .asyncMap((user) async {
+          try {
+            return await _fetchOrCreateUserModel(user);
+          } catch (e, st) {
+            debugPrint('=== authStateChanges error: $e\n$st');
+            return null;
+          }
+        });
+  }
 
   @override
   Future<void> signInWithGoogle() async {
