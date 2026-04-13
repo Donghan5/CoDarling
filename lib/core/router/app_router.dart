@@ -23,21 +23,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     },
     redirect: (context, state) {
       final authState = ref.read(authStateProvider);
-
-      // Still loading — don't redirect yet
       if (authState.isLoading) return null;
 
       final isAuthenticated = authState.valueOrNull != null;
       final isLoginRoute = state.matchedLocation == '/login';
+      final isCoupleSetupRoute = state.matchedLocation == '/couple-setup';
 
-      if (!isAuthenticated && !isLoginRoute) return '/login';
-      if (isAuthenticated && isLoginRoute) return '/home';
+      if (!isAuthenticated) return isLoginRoute ? null : '/login';
 
-      // Guard: already-coupled users cannot navigate to couple-setup
-      if (isAuthenticated && state.matchedLocation == '/couple-setup') {
-        final couple = ref.read(currentCoupleProvider).valueOrNull;
-        if (couple != null && couple.isActive) return '/home';
-      }
+      // Authenticated — check couple status
+      final coupleState = ref.read(currentCoupleProvider);
+      if (coupleState.isLoading) return null;
+
+      final hasCouple = coupleState.valueOrNull?.isActive == true;
+
+      if (!hasCouple && !isCoupleSetupRoute) return '/couple-setup';
+      if (hasCouple && (isLoginRoute || isCoupleSetupRoute)) return '/home';
 
       return null;
     },
@@ -69,9 +70,9 @@ final routerProvider = Provider<GoRouter>((ref) {
     ],
   );
 
-  // When auth state changes, tell router to re-evaluate redirects.
-  // This avoids recreating the GoRouter (which would reset navigation).
+  // Re-evaluate redirects when auth or couple state changes.
   ref.listen(authStateProvider, (_, __) => router.refresh());
+  ref.listen(currentCoupleProvider, (_, __) => router.refresh());
 
   ref.onDispose(router.dispose);
 
